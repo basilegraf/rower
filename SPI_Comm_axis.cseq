@@ -1,0 +1,106 @@
+# COMET special parameters
+# ISO linear units : m,  m/s,  m/s²,  V,  A,  s
+# ISO rotary units : t,  t/s,  t/s²,  V,  A,  s
+
+#define _SPI_AXIS_ 1
+#define _MOT_AXIS_ 0
+#define _LOAD_AXIS_ 1
+#define _SPI_BUFFER_SIZE_ 8
+
+int spiBuffer[_SPI_BUFFER_SIZE_];
+
+void configSPI(void);
+void send4ByteInteger(int);
+void sendSPIBuffer(void);
+void mainloop(void);
+
+void autostart(void)
+{
+	mainloop();
+}
+
+void func1(void)
+{
+	mainloop();
+}
+
+void mainloop(void)
+{
+	int pos = 0;
+	int speed10 = 0;
+	# SPI Configuration
+	configSPI();
+	# Pause
+	wtt.1 = 100;	
+	
+	spiBuffer[0] = 0;
+	spiBuffer[1] = 0;
+	spiBuffer[2] = 4324;
+	spiBuffer[3] = 43434;
+	spiBuffer[4] = 123456789;
+	spiBuffer[5] = -364773853;
+	spiBuffer[6] = m90._MOT_AXIS_;
+	spiBuffer[7] = m90._LOAD_AXIS_; # Temperature
+
+	# loop and send data
+	while (1)
+	{
+		//c40.1 = 65;
+		//wtt.1 = 1000;
+		//c40.1 = 66;
+		wtt._SPI_AXIS_ = 1000;
+		pos = xf9._MOT_AXIS_;
+		speed10 = 10.0f * xf10._MOT_AXIS_;
+		spiBuffer[0] = pos;
+		spiBuffer[1] = speed10;
+		spiBuffer[6] = m90._MOT_AXIS_;
+		spiBuffer[7] = m90._LOAD_AXIS_; # Temperature
+		sendSPIBuffer();
+	}
+}
+
+void configSPI(void)
+{
+	int config = 0;
+	# SPI Configuration as master
+	c361:1._SPI_AXIS_ = 1; # SPI clock on FDOUT1, non-inverted
+	C360:1._SPI_AXIS_ = 1 << 1; # MOSI data output on FDOUT2, non-inverted
+	C305:1._SPI_AXIS_ = 1 << 0; # MISO data input on FDIN1, non-inverted
+	C362:1._SPI_AXIS_ = 1 << 2; # Chip select on FDOUT3, non-inverted (we will not use it)
+	# SPI Message configuration
+	config += 1 << 0;  # bit 0: Master mode
+	config += 0 << 1;  # bit 1: CPHA: 0 => data capture on clock rising edge
+	config += 0 << 2;  # bit 2: MSB first
+							 # bit 3: not used
+	config += 7 << 4;	 # bit 4-6: Clock frequency = 7:39kHz, 3:625kHz
+							 # bit 7: not used
+	config += 0 << 8;	 # bit 8-9: data size 8bits	
+							 # bit 10-15: not used
+	config += 0 << 16; # bit 16: CRC disabled
+	config += 0 << 17; # bit 17-19: CRC size
+							 # bit 20-21: not used
+	config += 0 << 22; # bit 22-23: CRC error management
+	C41:0._SPI_AXIS_  = config;
+}
+
+
+void send4ByteInteger(int val)
+{
+	# Send least significant byte fisrt
+	c40._SPI_AXIS_ = (val >> 0)  & 255;
+	c40._SPI_AXIS_ = (val >> 8)  & 255;
+	c40._SPI_AXIS_ = (val >> 16) & 255;
+	c40._SPI_AXIS_ = (val >> 24) & 255;
+}
+
+void sendSPIBuffer(void)
+{
+int i;
+	for (i=0; i<_SPI_BUFFER_SIZE_; i++)
+	{
+		send4ByteInteger(spiBuffer[i]);
+	}
+}
+
+
+
