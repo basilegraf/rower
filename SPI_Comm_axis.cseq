@@ -28,6 +28,7 @@ void mainloop(void)
 {
 	int pos = 0;
 	int speed10 = 0;
+	int energyRowerRealCal = 0;
 	int totalRowingTime = 0;
 	int numStrokesPerMin10 = 0;
 	int avStrokePower = 0;
@@ -54,14 +55,16 @@ void mainloop(void)
 		wtt._SPI_AXIS_ = 1000;
 		pos = xf9._MOT_AXIS_;
 		speed10 = 10.0f * xf10._MOT_AXIS_;
+		energyRowerRealCal = (1.0f/4.184f) * xf13._MOT_AXIS_;
 		totalRowingTime = xf14._MOT_AXIS_;
 		numStrokesPerMin10  = 10.0f * xf15._MOT_AXIS_;
 		avStrokePower  = (xf16._MOT_AXIS_ + 0.5f);
 		spiBuffer[0] = pos;
 		spiBuffer[1] = speed10;
-		spiBuffer[2] = totalRowingTime;
-		spiBuffer[3] = numStrokesPerMin10;
-		spiBuffer[4] = avStrokePower;
+		spiBuffer[2] = energyRowerRealCal;
+		spiBuffer[3] = totalRowingTime;
+		spiBuffer[4] = numStrokesPerMin10;
+		spiBuffer[5] = avStrokePower;
 		spiBuffer[6] = m90._MOT_AXIS_;
 		spiBuffer[7] = m90._LOAD_AXIS_; # Temperature
 		sendSPIBuffer();

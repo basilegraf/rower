@@ -250,7 +250,7 @@ void aviron(void)
 			numStrokePerMin = 60.0f / strokeDuration;
 			
 			lastStrokeCounter = ml228.0;
-			lastStrokeEnergy = energyRowerReal:
+			lastStrokeEnergy = energyRowerReal;
 			
 			if (firstStrokeCounter == 0)
 			{
@@ -368,6 +368,7 @@ float absolutValue(float x)
  		return -x;
 	}
 }
+
 
 
 
