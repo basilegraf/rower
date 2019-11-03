@@ -209,6 +209,17 @@ void aviron(void)
 	// Energy
 	float energyRowerReal = 0.0f;  // [W*s]=[Joules]
 
+	// Rowing stroke detection
+	int omegaSign = -1;
+	int lastOmegaSign = -1;	// We will detect when omega goes from negative to positive
+	long firstStrokeCounter = 0;
+	long lastStrokeCounter = counterNow; // 
+	float lastStrokeEnergy = 0.0f; // Total Joules at last stroke begin
+	float strokeDuration = 2.0f; // [s]
+	float avStrokePower = 0.0f;    // Average (real) stroke power over last stoke [W]
+	float numStrokePerMin = 0.0f;  // Number of strokes/minute, based on stroke duration
+	float totalRowingTime = 0.0f; // Total rowing time since first stroke [s]
+
 	// Main loop
 	// =========
 	x0.0 = 1;
@@ -227,6 +238,33 @@ void aviron(void)
 		// Currents
 		motIreal = ci2Amp * MF31.0;
 		loadIreal = ci2Amp * MF31.1;
+
+		// Detect stroke begin
+		if (lastOmegaSign < 0 && omega > 0.314f)
+		{
+			strokeDuration = ml228.0 - lastStrokeCounter;
+			
+			strokeDuration = 25e-6f * strokeDuration; // Stroke duration in [s]
+			avStrokePower = (energyRowerReal - lastStrokeEnergy) / strokeDuration;
+
+			numStrokePerMin = 60.0f / strokeDuration;
+			
+			lastStrokeCounter = ml228.0;
+			lastStrokeEnergy = energyRowerReal:
+			
+			if (firstStrokeCounter == 0)
+			{
+				firstStrokeCounter =  ml228.0;
+			}
+		}
+		if (omega > 0.314f) // We actually use 0.1 t/s as threshold
+		{
+			lastOmegaSign  = 1;
+		}
+		else
+		{
+			lastOmegaSign = -1;
+		}
 
 		// Rope pull-back current as a function of rope length
 		motIpullBack = 0.3f + 0.2f * motRadius * alpha;
@@ -282,12 +320,24 @@ void aviron(void)
 		xt += h * xtt;
 		// Integrate Rower energy in Joules
 		energyRowerReal += h * powerRowerReal;
+
+		// Total rowing time
+		if (firstStrokeCounter != 0)
+		{
+			totalRowingTime = counterNow - firstStrokeCounter;
+			totalRowingTime = 25e-6f * totalRowingTime;
+		}
+
 		// Publish values for monitoring
 		xf9.0  = x;  // Boat position
 		xf10.0 = xt; // Boat speed
 		xf11.0 = motRadius * omega; // chain speed
 		xf12.0 = omega;
 		xf13.0 = energyRowerReal;
+
+		xf14.0 = totalRowingTime; // Total rowing time [s]
+		xf15.0 = numStrokePerMin; // Number of strokes per minute
+		xf16.0 = avStrokePower;   // Average power over last stroke [W]
 	
 		xf20.0 = motRadius * alpha; // Rope length
 	}
