@@ -247,6 +247,17 @@ void aviron(void)
 		{
 			lastOmegaSign = 1;
 			alphaThreshold = alpha;
+			
+			if (firstStrokeCounter == 0)
+			{
+				firstStrokeCounter =  ml228.0;
+				lastStrokeCounter = firstStrokeCounter; // Maybe not the best to do...
+			}
+		}
+		// Detect stroke end
+		if (lastOmegaSign > 0 && omega < -omegaThreshold && (alpha-alphaThreshold) > 6.28f) 
+		{
+			lastOmegaSign  = -1;
 
 			strokeDuration = ml228.0 - lastStrokeCounter;
 			
@@ -257,16 +268,6 @@ void aviron(void)
 			
 			lastStrokeCounter = ml228.0;
 			lastStrokeEnergy = energyRowerReal;
-			
-			if (firstStrokeCounter == 0)
-			{
-				firstStrokeCounter =  ml228.0;
-			}
-		}
-		// Detect stroke end
-		if (lastOmegaSign > 0 && omega < -omegaThreshold && (alpha-alphaThreshold) > 6.28f) 
-		{
-			lastOmegaSign  = -1;
 		}
 
 
