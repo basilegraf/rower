@@ -212,6 +212,8 @@ void aviron(void)
 	// Rowing stroke detection
 	int omegaSign = -1;
 	int lastOmegaSign = -1;	// We will detect when omega goes from negative to positive
+	float omegaThreshold = 0.314f; // We actually use 0.1 t/s as threshold
+	float alphaThreshold = 0.0f;
 	long firstStrokeCounter = 0;
 	long lastStrokeCounter = counterNow; // 
 	float lastStrokeEnergy = 0.0f; // Total Joules at last stroke begin
@@ -219,6 +221,7 @@ void aviron(void)
 	float avStrokePower = 0.0f;    // Average (real) stroke power over last stoke [W]
 	float numStrokePerMin = 0.0f;  // Number of strokes/minute, based on stroke duration
 	float totalRowingTime = 0.0f; // Total rowing time since first stroke [s]
+
 
 	// Main loop
 	// =========
@@ -240,8 +243,11 @@ void aviron(void)
 		loadIreal = ci2Amp * MF31.1;
 
 		// Detect stroke begin
-		if (lastOmegaSign < 0 && omega > 0.314f)
+		if (lastOmegaSign < 0 && omega > omegaThreshold)
 		{
+			lastOmegaSign = 1;
+			alphaThreshold = alpha;
+
 			strokeDuration = ml228.0 - lastStrokeCounter;
 			
 			strokeDuration = 25e-6f * strokeDuration; // Stroke duration in [s]
@@ -257,14 +263,12 @@ void aviron(void)
 				firstStrokeCounter =  ml228.0;
 			}
 		}
-		if (omega > 0.314f) // We actually use 0.1 t/s as threshold
+		// Detect stroke end
+		if (lastOmegaSign > 0 && omega < -omegaThreshold && (alpha-alphaThreshold) > 6.28f) 
 		{
-			lastOmegaSign  = 1;
+			lastOmegaSign  = -1;
 		}
-		else
-		{
-			lastOmegaSign = -1;
-		}
+
 
 		// Rope pull-back current as a function of rope length
 		motIpullBack = 0.3f + 0.2f * motRadius * alpha;
