@@ -12,7 +12,7 @@
 int spiBuffer[_SPI_BUFFER_SIZE_];
 
 void configSPIAsMaster(void);
-void configSPIAsSlave(void);
+int configSPIAsSlave(void);
 
 void send4ByteIntegerAsMaster(int);
 void sendSPIBufferAsMaster(void);
@@ -30,12 +30,22 @@ void autostart(void)
 
 void func1(void)
 {
-	mainloopAsMaster();
+	#mainloopAsMaster();
 }
 
 void func2(void)
 {
 	mainloopAsSlave();
+}
+
+void func3(void)
+{
+	configSPIAsMaster();
+}
+
+void func4(void)
+{
+	configSPIAsSlave();
 }
 
 void initialiseSpiBuffer(void)
@@ -91,28 +101,36 @@ void mainloopAsSlave(void)
 {
 	int dataToArduino = 0;
 	int arduinoCommand = 0; 
+	int config = 0;
 
 	# SPI Configuration
-	configSPIAsSlave();
+	config = configSPIAsSlave();
 	# Pause
 	wtt.1 = 100;
 
 	dataToArduino = 22;
 
 	X0._SPI_AXIS_ = 0;
+	X1._SPI_AXIS_ = 0;
 
 	while (1)
 	{
+		while ((M260._SPI_AXIS_ & 0x1) != 0); # buffer out (C40) is empty and can be writen to when bit0=0
 		C40._SPI_AXIS_ = dataToArduino; # Prepare data sent to master	
+		X1._SPI_AXIS_ = dataToArduino;
 	
-		while (M260._SPI_AXIS_ & SPI_DATTA_RECEIVED == 0); // Wait for data exchange
-		
+		while ((M260._SPI_AXIS_ & 0x2) == 0); // bit1==0 => trasmission in progress
+			
 		# Read data received from master
 		arduinoCommand = M261._SPI_AXIS_;
 		X0._SPI_AXIS_ = arduinoCommand;
-
+		
+		C41:0._SPI_AXIS_ = config; # ??? Does not wok without resetting the config each time
+					   # but then cannot send more than 1byte/500ms from arduino master...
+		
 		dataToArduino++;
-		if (dataToArduino > 99) dataToArduino = 22;
+		if (dataToArduino > 250) dataToArduino = 0;
+		
 	}
 	
 
@@ -145,7 +163,7 @@ void configSPIAsMaster(void)
 	C41:0._SPI_AXIS_  = config;
 }
 
-void configSPIAsSlave(void)
+int configSPIAsSlave(void)
 {
 	int config = 0;
 	# SPI Configuration as slave
@@ -160,7 +178,7 @@ void configSPIAsSlave(void)
 	config += 0 << 1;  # bit 1: CPHA: 0 => data capture on clock rising edge
 	config += 0 << 2;  # bit 2: MSB first
 							 # bit 3: not used
-	config += 7 << 4;	 # bit 4-6: Clock frequency = 7:39kHz, 3:625kHz
+	config += 3 << 4;	 # bit 4-6: Clock frequency = 7:39kHz, 5:156kHz 3:625kHz
 							 # bit 7: not used
 	config += 0 << 8;	 # bit 8-9: data size 8bits	
 							 # bit 10-15: not used
@@ -189,6 +207,8 @@ void sendSPIBufferAsMaster(void)
 		send4ByteIntegerAsMaster(spiBuffer[i]);
 	}
 }
+
+
 
 
 
