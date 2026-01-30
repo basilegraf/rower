@@ -7,6 +7,8 @@
 #define _LOAD_AXIS_ 1
 #define _SPI_BUFFER_SIZE_ 8
 
+#define SPI_DATTA_RECEIVED 0x2
+
 int spiBuffer[_SPI_BUFFER_SIZE_];
 
 void configSPIAsMaster(void);
@@ -14,7 +16,9 @@ void configSPIAsSlave(void);
 
 void send4ByteIntegerAsMaster(int);
 void sendSPIBufferAsMaster(void);
+
 void mainloopAsMaster(void);
+void mainloopAsSlave(void);
 
 void initialiseSpiBuffer(void);
 void fillSpiBuffer(void);
@@ -27,6 +31,11 @@ void autostart(void)
 void func1(void)
 {
 	mainloopAsMaster();
+}
+
+void func2(void)
+{
+	mainloopAsSlave();
 }
 
 void initialiseSpiBuffer(void)
@@ -72,14 +81,43 @@ void mainloopAsMaster(void)
 	# loop and send data
 	while (1)
 	{
-		//c40.1 = 65;
-		//wtt.1 = 1000;
-		//c40.1 = 66;
 		wtt._SPI_AXIS_ = 1000;
 		fillSpiBuffer();
 		sendSPIBufferAsMaster();
 	}
 }
+
+void mainloopAsSlave(void)
+{
+	int dataToArduino = 0;
+	int arduinoCommand = 0; 
+
+	# SPI Configuration
+	configSPIAsSlave();
+	# Pause
+	wtt.1 = 100;
+
+	dataToArduino = 22;
+
+	X0._SPI_AXIS_ = 0;
+
+	while (1)
+	{
+		C40._SPI_AXIS_ = dataToArduino; # Prepare data sent to master	
+	
+		while (M260._SPI_AXIS_ & SPI_DATTA_RECEIVED == 0); // Wait for data exchange
+		
+		# Read data received from master
+		arduinoCommand = M261._SPI_AXIS_;
+		X0._SPI_AXIS_ = arduinoCommand;
+
+		dataToArduino++;
+		if (dataToArduino > 99) dataToArduino = 22;
+	}
+	
+
+}
+
 
 void configSPIAsMaster(void)
 {
