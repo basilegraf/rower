@@ -71,16 +71,16 @@ void loop() {
 
   while (true)
   {
-    delay(500);
+    //delay(500);
     digitalWrite(_ACCURET_SS_, LOW); // Select accuret
     data = SPI.transfer(command);
     digitalWrite(_ACCURET_SS_, HIGH); // Deselect accuret
-    Serial.print(command);
-    Serial.print(" -> ");
-    Serial.print(data);
-    Serial.print(" ");
-    Serial.print(SPCR);
-    Serial.print("\n");
+    //Serial.print(command);
+    //Serial.print(" -> ");
+    //Serial.print(data);
+    //Serial.print(" ");
+    //Serial.print(SPCR);
+    //Serial.print("\n");
     command++;
   }
 

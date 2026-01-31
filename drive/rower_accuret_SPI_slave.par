@@ -125,7 +125,7 @@ void mainloopAsSlave(void)
 		arduinoCommand = M261._SPI_AXIS_;
 		X0._SPI_AXIS_ = arduinoCommand;
 		
-		C41:0._SPI_AXIS_ = config; # ??? Does not wok without resetting the config each time
+		#C41:0._SPI_AXIS_ = config; # ??? Does not wok without resetting the config each time
 					   # but then cannot send more than 1byte/500ms from arduino master...
 		
 		dataToArduino++;
@@ -172,7 +172,7 @@ int configSPIAsSlave(void)
 	C360:1._SPI_AXIS_ = 1 << 1; # MISO data output on FDOUT2, non-inverted
 	C305:1._SPI_AXIS_ = 1 << 0; # MOSI data input on FDIN1, non-inverted
 	C362:1._SPI_AXIS_ = 0; # Disable chip select out 
-	C307:1._SPI_AXIS_ = 1 << 2; # Chip select input on FDIN3 
+	C307:1._SPI_AXIS_ = 1 << 2+16; # Chip select input on FDIN3 (inverted)
 	# SPI Message configuration
 	config += 0 << 0;  # bit 0: Slave mode
 	config += 0 << 1;  # bit 1: CPHA: 0 => data capture on clock rising edge
@@ -207,6 +207,7 @@ void sendSPIBufferAsMaster(void)
 		send4ByteIntegerAsMaster(spiBuffer[i]);
 	}
 }
+
 
 
 
