@@ -59,29 +59,49 @@ void setup() {
 void loop() {
   
   delay(100); 
-  
-  byte command = 11;
-  byte data = 0;
+
+  byte k = 0;
+  byte command = 0;
+  byte lastCommand = 0;
+  byte challenge = 0;
+  byte reply = 0;
+  byte errorCount = 0;
   
 
   SPI.begin();
   SPI.beginTransaction(SPISettings(625000, MSBFIRST, SPI_MODE0));
+  //SPI.beginTransaction(SPISettings(312500, MSBFIRST, SPI_MODE0));
   
 
 
   while (true)
   {
-    //delay(500);
+    command = k;
+    
     digitalWrite(_ACCURET_SS_, LOW); // Select accuret
-    data = SPI.transfer(command);
+    reply = SPI.transfer(command);
     digitalWrite(_ACCURET_SS_, HIGH); // Deselect accuret
-    //Serial.print(command);
-    //Serial.print(" -> ");
-    //Serial.print(data);
-    //Serial.print(" ");
-    //Serial.print(SPCR);
-    //Serial.print("\n");
-    command++;
+
+    if (k == 0)
+      errorCount = 0;
+    else
+    {
+      challenge = (lastCommand + byte(77)) & 0xFF;
+      if (reply != challenge) ++errorCount;
+    }
+
+    lastCommand = command;
+    k++;
+
+    if (k==255)
+    {
+      Serial.print("Error count : ");
+      Serial.print(errorCount);
+      Serial.print("\n");
+    }
+
+    delayMicroseconds(500);
+    
   }
 
 }

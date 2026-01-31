@@ -108,7 +108,7 @@ void mainloopAsSlave(void)
 	# Pause
 	wtt.1 = 100;
 
-	dataToArduino = 22;
+	dataToArduino = 0;
 
 	X0._SPI_AXIS_ = 0;
 	X1._SPI_AXIS_ = 0;
@@ -117,23 +117,17 @@ void mainloopAsSlave(void)
 	{
 		while ((M260._SPI_AXIS_ & 0x1) != 0); # buffer out (C40) is empty and can be writen to when bit0=0
 		C40._SPI_AXIS_ = dataToArduino; # Prepare data sent to master	
-		X1._SPI_AXIS_ = dataToArduino;
+		#X1._SPI_AXIS_ = dataToArduino;
 	
 		while ((M260._SPI_AXIS_ & 0x2) == 0); // bit1==0 => trasmission in progress
 			
 		# Read data received from master
 		arduinoCommand = M261._SPI_AXIS_;
-		X0._SPI_AXIS_ = arduinoCommand;
-		
-		#C41:0._SPI_AXIS_ = config; # ??? Does not wok without resetting the config each time
-					   # but then cannot send more than 1byte/500ms from arduino master...
-		
-		dataToArduino++;
-		if (dataToArduino > 250) dataToArduino = 0;
+		#X0._SPI_AXIS_ = arduinoCommand;
+	
+		dataToArduino = (arduinoCommand + 77) & 0xFF;
 		
 	}
-	
-
 }
 
 
@@ -207,6 +201,7 @@ void sendSPIBufferAsMaster(void)
 		send4ByteIntegerAsMaster(spiBuffer[i]);
 	}
 }
+
 
 
 
