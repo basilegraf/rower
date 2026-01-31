@@ -42,9 +42,9 @@ void setup() {
   //pinMode(MISO, INPUT);
   //pinMode(MOSI, OUTPUT);
   //pinMode(_SPI_CLOCK_, OUTPUT);
-  //pinMode(_ACCURET_SS_, OUTPUT);
+  pinMode(_ACCURET_SS_, OUTPUT);
 
-  digitalWrite(_ACCURET_SS_, HIGH); // Deselect accuret (non inverted)
+  digitalWrite(_ACCURET_SS_, HIGH); // Deselect accuret
  
   SPI.begin();
 
@@ -62,7 +62,7 @@ void loop() {
   
   byte command = 11;
   byte data = 0;
-  digitalWrite(_ACCURET_SS_, HIGH); // Select accuret (non inverted)
+  
 
   SPI.begin();
   SPI.beginTransaction(SPISettings(625000, MSBFIRST, SPI_MODE0));
@@ -72,7 +72,9 @@ void loop() {
   while (true)
   {
     delay(500);
+    digitalWrite(_ACCURET_SS_, LOW); // Select accuret
     data = SPI.transfer(command);
+    digitalWrite(_ACCURET_SS_, HIGH); // Deselect accuret
     Serial.print(command);
     Serial.print(" -> ");
     Serial.print(data);
